@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="/home/lnxdev/.android/build-cache/d909a258e443321131f013db699929feca799884/output/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="914f5d3e3ace66080e59613708f06d129a222e25">
+        <dex dex="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/transforms/dex/debug/folders/1000/10/classes_299fc793b75895aecb3b23c31dbc83d1c68868d8/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/lnxdev/.android/build-cache/d5acdf21d54fe732d7eeb5d4dc2a943a6f829b79/output/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="807751a24cf96566fd8675517c94d8463cf364db">
+        <dex dex="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/transforms/dex/debug/folders/1000/10/classes_29219430fa0d9f427bff72cb1295ecc63ffca813/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="08e04aeacceede0a0fc95e94b6b84ba896154262">
+        <dex dex="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_69961bd758e57df1532049077925c9161bbd205b/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/lnxdev/.android/build-cache/f9464a430ec6708a1809c2742204de3d78f7db7a/output/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="474cccf169297d49fff89fd35b7634a7a9d1031c">
+        <dex dex="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/transforms/dex/debug/folders/1000/10/classes_adfd8ffd3a1a609837b2826450ea38b3e67ce29d/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
+        <dex dex="/home/lnxdev/AndroidStudioProjects/VoKa/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_a2e51398ec1c18b4d85f88545b3134080753a529/classes.dex" />
+    </item>
+
+</items>
