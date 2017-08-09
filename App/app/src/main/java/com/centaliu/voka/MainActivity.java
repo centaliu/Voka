@@ -19,7 +19,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.webkit.WebView;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -48,6 +48,12 @@ import com.facebook.login.LoginResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+//====================================================================================================
+//history:
+//  2017.08.09 15:31 adjust the sequence of initialization, get DB password first, then Facebook login
+//                   then start the game, due to need DB access while do facebook login
+//====================================================================================================
 
 public class MainActivity extends AppCompatActivity {
     private class vocData {
@@ -88,6 +94,106 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Log.d("DBG", "going to call getDBPWD()");
+                    getDBPWD();
+                }
+                catch (Exception ex){
+                    Log.d("DBG", "exception=" + ex.getMessage());
+                }
+            }
+        }, 1000);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    //get a preference data by its key.
+    private String getPrefData(String Key)
+    {
+        String ret = "";
+        SharedPreferences SP = getSharedPreferences("userdetails", MODE_PRIVATE);
+        ret = SP.getString(Key, "");
+        return ret;
+    }
+
+    //to save data to Shared Preferences
+    private void savePref(String Key, String Val)
+    {
+        SharedPreferences SPData = getSharedPreferences("userdetails", MODE_PRIVATE);
+        SharedPreferences.Editor edit = SPData.edit();
+        edit.clear();
+        Map<String, ?> all = SPData.getAll();
+        for (Map.Entry<String, ?> entry : all.entrySet()) {
+            edit.putString(entry.getKey(), entry.getValue().toString());
+        }
+        edit.putString(Key, Val);
+        edit.commit();
+    }
+
+    //function to get password of remote database, return empty string if couldn't get it correctly
+    public void getDBPWD()
+    {
+        final EditText PWDinput = new EditText(this);//an edittext text box for user to input password of remote database
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);//an object ot show a dialog for user to input something
+        builder.setTitle("Please input password of remote database");
+        PWDinput.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(PWDinput);
+        //setup the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                DBPWD = PWDinput.getText().toString();
+                RemoteAccess testpwd = new RemoteAccess(new OnAyncTaskCompleted() {
+                    public void onAysncTaskCompleted(Object object) {
+                        ArrayList<Object> retArr = (ArrayList<Object>)object;
+                        String retData = (String)retArr.get(0);
+                        if (retData.equals("OK")) {
+                            savePref("DBPWD", DBPWD);
+                            //startGame();
+                            FBLogin();
+                        }
+                        else {
+                            finish();
+                            System.exit(0);
+                        }
+                    }
+                });
+                testpwd.execute(new Object[]{8, DBPWD});
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                finish();
+                System.exit(0);
+            }
+        });
+        //get DBPWD from preference, if empty string, than pop up an input to ask user to input password of database
+        DBPWD = getPrefData("DBPWD");
+        Log.d("DBG", "getPrefData DBPWD =" + DBPWD);
+        if (DBPWD.equals("")) builder.show();
+        else {
+            RemoteAccess testpwd = new RemoteAccess(new OnAyncTaskCompleted() {
+                public void onAysncTaskCompleted(Object object) {
+                    ArrayList<Object> retArr = (ArrayList<Object>)object;
+                    String retData = (String)retArr.get(0);
+                    if (retData.equals("OK")) FBLogin(); else builder.show();
+                }
+            });
+            testpwd.execute(new Object[]{8, DBPWD});
+        }
+    }
+
+    //function to do FB login
+    public void FBLogin()
+    {
         //0.iniitilzation of variables
         final float fScale = getResources().getDisplayMetrics().density;
         final int scale = Math.round(fScale * 100);//because sometimes fScale isn't integer, such as 1.5.
@@ -135,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                         userID = Integer.parseInt(sepData[0]);
                         rlTags.setVisibility(View.VISIBLE);
                         rlTitle.setVisibility(View.INVISIBLE);
-                        getDBPWD();
+                        startGame();
                     }
                 });
                 access.execute(new Object[]{0, "" + loginResult.getAccessToken().getUserId()});
@@ -207,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
                     userID = Integer.parseInt(sepData[0]);
                     rlTags.setVisibility(View.VISIBLE);
                     rlTitle.setVisibility(View.INVISIBLE);
-                    getDBPWD();
+                    startGame();
                 }
             });
             access.execute(new Object[]{0, "" + accessToken.getUserId()});
@@ -223,91 +329,6 @@ public class MainActivity extends AppCompatActivity {
         //8.hide main operation layout at luanching APP
         rlMain.setVisibility(View.INVISIBLE);
         rlTags.setVisibility(View.INVISIBLE);
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        callbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
-    //get a preference data by its key.
-    private String getPrefData(String Key)
-    {
-        String ret = "";
-        SharedPreferences SP = getSharedPreferences("userdetails", MODE_PRIVATE);
-        ret = SP.getString(Key, "");
-        return ret;
-    }
-
-    //to save data to Shared Preferences
-    private void savePref(String Key, String Val)
-    {
-        SharedPreferences SPData = getSharedPreferences("userdetails", MODE_PRIVATE);
-        SharedPreferences.Editor edit = SPData.edit();
-        edit.clear();
-        Map<String, ?> all = SPData.getAll();
-        for (Map.Entry<String, ?> entry : all.entrySet()) {
-            edit.putString(entry.getKey(), entry.getValue().toString());
-        }
-        edit.putString(Key, Val);
-        edit.commit();
-    }
-
-    //function to get password of remote database, return empty string if couldn't get it correctly
-    public void getDBPWD()
-    {
-        final EditText PWDinput = new EditText(this);//an edittext text box for user to input password of remote database
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);//an object ot show a dialog for user to input something
-        builder.setTitle("Please input password of remote database");
-        PWDinput.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(PWDinput);
-        // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                DBPWD = PWDinput.getText().toString();
-                RemoteAccess testpwd = new RemoteAccess(new OnAyncTaskCompleted() {
-                    public void onAysncTaskCompleted(Object object) {
-                        ArrayList<Object> retArr = (ArrayList<Object>)object;
-                        String retData = (String)retArr.get(0);
-                        if (retData.equals("OK")) {
-                            savePref("DBPWD", DBPWD);
-                            startGame();
-                        }
-                        else {
-                            finish();
-                            System.exit(0);
-                        }
-                    }
-                });
-                testpwd.execute(new Object[]{8, DBPWD});
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-                finish();
-                System.exit(0);
-            }
-        });
-        //get DBPWD from preference, if empty string, than pop up an input to ask user to input password of database
-        DBPWD = getPrefData("DBPWD");
-        Log.d("DBG", "getPrefData DBPWD =" + DBPWD);
-        if (DBPWD.equals(""))
-        {
-            builder.show();
-        } else {
-            RemoteAccess testpwd = new RemoteAccess(new OnAyncTaskCompleted() {
-                public void onAysncTaskCompleted(Object object) {
-                    ArrayList<Object> retArr = (ArrayList<Object>)object;
-                    String retData = (String)retArr.get(0);
-                    if (retData.equals("OK")) startGame(); else builder.show();
-                }
-            });
-            testpwd.execute(new Object[]{8, DBPWD});
-        }
     }
 
     //function for starting the game once everything is ready
